@@ -86,7 +86,7 @@ class Pre {
 			$data = ob_get_clean();
 			
 			if (! empty($label))
-				$data = '<span style="color: #222; font-weight: bold; background-color: #eee; font-size: 12px; padding: 4px 6px;">'.$label."</span>\n$data";
+				$data = '<span style="color: #222; font-weight: bold; background-color: #eee; font-size: 12px; padding: 4px 6px;">'.$label."</span> $data";
 			
 			// :private messies up our regex
 			$data = str_replace(':private]', ']<span style="color: #444; font-style: italic;">:private</span>', $data);
