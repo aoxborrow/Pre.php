@@ -147,7 +147,7 @@ class Pre {
 			$data = preg_replace('/(.*)\n/', "<b>\\1</b>\n", $data, 1);
 			
 			// add some separators
-			$pre .= "$data\n";
+			$pre .= "$data";
 		
 		}
 		
