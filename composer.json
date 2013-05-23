@@ -1,7 +1,7 @@
 {
 	"name": "paste/pre",
 	"license": "MIT",
-	"description": "A handsome replacement for print_r & var_dump",
+	"description": "A handsome replacement for print_r & var_dump.",
     "type": "library",
 	"authors": [
 		{

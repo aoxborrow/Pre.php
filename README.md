@@ -1,5 +1,5 @@
 ## Pre
-A handsome replacement for print\_r & var\_dump
+A handsome replacement for print\_r & var\_dump.
 
 **TODOs:**
 

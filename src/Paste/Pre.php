@@ -18,22 +18,33 @@ class Pre {
 	public static $config = array(
 		'width' => 'auto',
 		'height' => 'auto',
-		'hide_string_counts' => FALSE,
+		'string_counts' => TRUE,
 	);
 	
 	// add data to be shown next time pre() is called
-	public static function data($data = NULL) {
+	public static function data($data = NULL, $label = NULL) {
 	
 		// $pre_data will be cleared after it is output
-		self::$data[] = $data;
+		self::$data[] = array('data' => $data, 'label' => $label);
 	
 	}
 	
+	// cute shortcut -- Pre::tty()
+	public static function tty($data, $label = NULL) {
+		return self::render($data, $label);
+	}
+
+	// shortcut Pre::_()
+	public static function _($data, $label = NULL) {
+		return self::render($data, $label);
+	}
+
+	
 	// simple wrapper for var_dump that outputs within a styled <pre> tag and fixes some whitespace and formatting
-	public static function render($data) {
+	public static function render($data, $label = NULL) {
 		
 		// add supplied to bottom of list
-		self::data($data);
+		self::data($data, $label);
 		
 		// extract config to this context for convenience
 		extract(self::$config);
@@ -58,49 +69,80 @@ class Pre {
 		
 		// iterate over data objects and var_dump 'em
 		foreach (self::$data as $data) {
+			
+			// pull out data and label
+			$label = $data['label'];
+			$data = $data['data'];
+			
+			// store object class name
+			// TODO: compile list of class names by searching: object(PreObject)#4 (2) {
+			// TODO: fix all class names on list
+			// TODO: like this: stdClass #3 object(4) {
+			$class = (gettype($data) == 'object') ? get_class($data) : FALSE;
 
 			// capture var_dump
 			ob_start();
 			var_dump($data);
 			$data = ob_get_clean();
+			
+			if (! empty($label))
+				$data = '<span style="color: #222; font-weight: bold; background-color: #eee; font-size: 12px; padding: 4px 6px;">'.$label."</span>\n$data";
+			
+			// :private messies up our regex
+			$data = str_replace(':private]', ']<span style="color: #444; font-style: italic;">:private</span>', $data);
 
-			// :private messus up our regex
-			$data = str_replace(':private]', '] <span style="color: #777; font-style: italic;">(private)</span>', $data);
+			// :protected messies up our regex
+			$data = str_replace(':protected]', ']<span style="color: #444; font-style: italic;">:protected</span>', $data);
+			
+			// we have an object class -- fix formatting
+			if ($class) {
+				
+				// remove it from private members
+				$data = str_replace(':"'.$class.'"', '', $data);
+				
+				// fix spacing on first line
+				$data = str_replace('object('.$class.')#', '<span style="color: #666; font-weight: bold;">(object)</span> '.$class.' #', $data);
+			
+			}
 
 			// fix spacing
 			$data = preg_replace('/=\>\s+/', ' => ', $data);
 
-			// hide string(0) things a little
-			if ($hide_string_counts) {
-				$data = preg_replace('/string\(([0-9]+)\) /', '', $data);
-			} else {
+			// de-emphasize or hide string(0) labels
+			if ($string_counts) {
 				$data = preg_replace('/string\(([0-9]+)\)/', '<span style="color: #777; font-style: italic;">str(\\1)</span>', $data);
+			} else {
+				$data = preg_replace('/string\(([0-9]+)\) /', '', $data);
 			}
 
-			// hide NULL a little
+			// de-emphasize NULL a little
 			$data = preg_replace('/=\> NULL/', '<span style="color: #666; font-weight: bold;">=> NULL</span>', $data);
 
-			// same for int
-			$data = preg_replace('/int\(([0-9-]+)\)/', '<span style="color: #777; font-style: italic;">int(\\1)</span>', $data);
+			// de-emphasize int
+			$data = preg_replace('/int\(([0-9-]+)\)/', '<span style="color: #777; font-style: italic;">int(<b>\\1</b>)</span>', $data);
 
-			// same for float
-			$data = preg_replace('/float\(([0-9\.-]+)\)/', '<span style="color: #777; font-style: italic;">float(\\1)</span>', $data);
+			// de-emphasize float
+			$data = preg_replace('/float\(([0-9\.-]+)\)/', '<span style="color: #777; font-style: italic;">float(<b>\\1</b>)</span>', $data);
 
-			// same for bool
+			// de-emphasize bool
 			$data = preg_replace('/bool\(([A-Za-z]+)\)/', '<span style="color: #666; font-weight: bold; text-transform: uppercase;">\\1</span>', $data);
 
-			// same for array
+			// de-emphasize array
 			$data = preg_replace('/array\(([0-9]+)\)/', '<span style="color: #777; font-style: italic;">array(\\1)</span>', $data);
 
 			// array keys are bolder
-			$data = preg_replace('/\[\"([A-Za-z0-9_ +\-\(\)\":]+)\"\]/', '<span style="color: #444; font-weight: bold;">["\\1"]</span>', $data);
+			// TODO: match keys with => at end to avoid false positives
+			// $data = preg_replace('/\[\"([A-Za-z0-9_ +\-\(\)\":]+)\"\]/', '<span style="color: #444; font-weight: bold;">["\\1"]</span>', $data);
+			$data = preg_replace('/\[\"([A-Za-z0-9_\ \@+\-\(\)\":]+)\"\]/', '<span style="color: #444; font-weight: bold;">["\\1"]</span>', $data);
 
 			// numeric keys are bolder
+			// TODO: match keys with => at end to avoid false positives
 			$data = preg_replace('/\[([0-9]+)\]/', '<span style="color: #444; font-weight: bold;">[\\1]</span>', $data);
 		
 			// use tabs
-			$data = str_replace('  ', "\t", $data);
-		
+			// $data = str_replace('  ', "\t", $data);
+			$data = str_replace('  ', "    ", $data);
+			
 			// bold the first line
 			$data = preg_replace('/(.*)\n/', "<b>\\1</b>\n", $data, 1);
 			
