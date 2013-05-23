@@ -86,7 +86,7 @@ class Pre {
 			$data = ob_get_clean();
 			
 			if (! empty($label))
-				$data = '<span style="color: #222; font-weight: bold; background-color: #eee; font-size: 12px; padding: 4px 6px;">'.$label."</span> $data";
+				$data = '<span style="color: #222; font-weight: bold; background-color: #eee; font-size: 11px; padding: 3px 5px;">'.$label."</span> $data";
 			
 			// :private messies up our regex
 			$data = str_replace(':private]', ']<span style="color: #444; font-style: italic;">:private</span>', $data);
@@ -101,7 +101,7 @@ class Pre {
 				$data = str_replace(':"'.$class.'"', '', $data);
 				
 				// fix spacing on first line
-				$data = str_replace('object('.$class.')#', '<span style="color: #666; font-weight: bold;">(object)</span> '.$class.' #', $data);
+				$data = str_replace('object('.$class.')#', '<span style="color: #666; font-weight: bold;">(object) '.$class.'</span> #', $data);
 			
 			}
 
@@ -144,7 +144,7 @@ class Pre {
 			$data = str_replace('  ', "    ", $data);
 			
 			// bold the first line
-			$data = preg_replace('/(.*)\n/', "<b>\\1</b>\n", $data, 1);
+			$data = preg_replace('/(.*)\n/', "\\1\n", $data, 1);
 			
 			// add some separators
 			$pre .= "$data";
