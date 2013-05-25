@@ -36,7 +36,13 @@ $test = new TestClass;
 echo Pre($test);
 
 // or add to data queue with a label
-Pre::add(array('notice' => NULL, 'these' => FALSE, 'values' => TRUE), 'Debug Label');
+Pre::add(array(
+	'null' => NULL, 
+	'boolean' => FALSE, 
+	'integer' => 1981,
+	'float' => 25.651,
+	'string' => 'string cheese',
+), 'My Debug Array');
 echo Pre::render();
 
 // VS print_r && var_dump

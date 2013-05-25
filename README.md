@@ -1,6 +1,9 @@
 ## Pre
 A handsome replacement for print\_r & var\_dump.
 
+![Label Example](https://github.com/paste/Pre.php/raw/master/label_example.png)  
+
+
 Installation
 ------------
 
