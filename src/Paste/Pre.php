@@ -18,7 +18,6 @@ class Pre {
 	public static $config = array(
 		'width' => 'auto',
 		'height' => 'auto',
-		'string_counts' => TRUE,
 	);
 	
 	// add data to be shown next time pre() is called
@@ -39,58 +38,6 @@ class Pre {
 		return self::render($data, $label);
 	}
 
-
-	// pretty print JSON string
-	// http://www.daveperrett.com/articles/2008/03/11/format-json-with-php/
-	public static function json($json) {
-		
-		$result      = '';
-		$pos         = 0;
-		$strLen      = strlen($json);
-		$indentStr   = '  ';
-		$newLine     = "\n";
-		$prevChar    = '';
-		$outOfQuotes = TRUE;
-
-		for ($i = 0; $i <= $strLen; $i++) {
-
-			// Grab the next character in the string.
-			$char = substr($json, $i, 1);
-
-			// Are we inside a quoted string?
-			if ($char == '"' && $prevChar != '\\') {
-				$outOfQuotes = !$outOfQuotes;
-
-			// If this character is the end of an element,
-			// output a new line and indent the next line.
-			} else if (($char == '}' || $char == ']') && $outOfQuotes) {
-				$result .= $newLine;
-				$pos --;
-				for ($j=0; $j<$pos; $j++) {
-					$result .= $indentStr;
-				}
-			}
-			// Add the character to the result string.
-			$result .= $char;
-
-			// If the last character was the beginning of an element,
-			// output a new line and indent the next line.
-			if (($char == ',' || $char == '{' || $char == '[') && $outOfQuotes) {
-				$result .= $newLine;
-				if ($char == '{' || $char == '[')
-					$pos ++;
-				for ($j = 0; $j < $pos; $j++)
-					$result .= $indentStr;
-			}
-
-			$prevChar = $char;
-		}
-
-		return $result;
-
-	}
-
-	
 	// simple wrapper for var_dump that outputs within a styled <pre> tag and fixes some whitespace and formatting
 	public static function render($data, $label = NULL) {
 		
@@ -176,19 +123,23 @@ class Pre {
 
 			// de-emphasize int labels
 			$data = preg_replace('/int\(([0-9-]+)\)/', '<span style="color: #777;">int(<span style="text-transform: uppercase; font-weight: normal; color: #222;">\\1</span>)</span>', $data);
-
+			
 			// de-emphasize float labels
 			$data = preg_replace('/float\(([0-9\.-]+)\)/', '<span style="color: #777;">float(<span style="text-transform: uppercase; font-weight: normal; color: #222;">\\1</span>)</span>', $data);
 
 			// de-emphasize bool label
 			$data = preg_replace('/bool\(([A-Za-z]+)\)/', '<span style="color: #666;">bool(<span style="text-transform: uppercase; font-weight: normal; color: #222;">\\1</span>)</span>', $data);
-
 			// de-emphasize array labels
 			$data = preg_replace('/array\(([0-9]+)\)/', '<span style="color: #777;">arr(\\1)</span>', $data);
 
-			// use tabs
-			// $data = str_replace('  ', "\t", $data);
-			// data = str_replace('  ', "    ", $data);
+			// boost spacing
+			$data = preg_replace_callback('/^(\s*)(\S.*)$/m', function($matches) {
+				// number of spaces that var_dump gave it
+				$indent = strlen($matches[1]);
+				// each 2 spaces is one column
+				$indent = ($indent > 0) ? str_repeat("    ", $indent/2) : "";
+            	return $indent.$matches[2];
+        	}, $data);
 			
 			// add some separators
 			$pre .= "$data";
@@ -205,6 +156,5 @@ class Pre {
 		return $pre;
 		
 	}
-
 }
  

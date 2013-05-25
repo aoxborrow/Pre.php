@@ -30,13 +30,6 @@ class PreObject {
 	}
 }
 
-/*
-// Pretty JSON
-$json = file_get_contents('sample.json');
-$pretty_json = Pre::json($json);
-echo Pre::render($pretty_json, 'json:');
-*/
-
 // PreObject
 $po = new PreObject;
 $po->member = new StdClass;
