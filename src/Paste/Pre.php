@@ -1,6 +1,8 @@
 <?php 
 /**
  * Pre - a handsome replacement for print_r & var_dump.
+ * A wrapper for var_dump that outputs within a styled <pre> tag and fixes whitespace and formatting.
+ * Uses magic toString so that data can be both added and rendered with the same method call.
  *
  * @author     Aaron Oxborrow <aaron@pastelabs.com>
  * @link       http://github.com/paste/Pre
@@ -11,44 +13,61 @@ namespace Paste;
 
 class Pre {
 	
-	// add data to be shown next output
-	public static $data = array();
+	// data to be shown next output
+	public $data = array();
+	
+	// pre default styling
+	public $style = 'font-family: Menlo, monospace; color: #000; font-size: 11px !important; line-height: 17px !important; text-align: left;';
 	
 	// default config for output
-	public static $config = array(
+	public $config = array(
 		'width' => 'auto',
 		'height' => 'auto',
 	);
+
+	// singleton instance
+	public static $instance;
 	
-	// add data to be shown next time pre() is called
+	// add data to be shown next time Pre is rendered
 	public static function data($data = NULL, $label = NULL) {
-	
-		// $pre_data will be cleared after it is output
-		self::$data[] = array('data' => $data, 'label' => $label);
-	
-	}
-	
-	// cute shortcut -- Pre::tty()
-	public static function tty($data, $label = NULL) {
-		return self::render($data, $label);
-	}
-
-	// shortcut Pre::_()
-	public static function _($data, $label = NULL) {
-		return self::render($data, $label);
-	}
-
-	// simple wrapper for var_dump that outputs within a styled <pre> tag and fixes some whitespace and formatting
-	public static function render($data, $label = NULL) {
 		
-		// add supplied to bottom of list
-		self::data($data, $label);
+		// get Pre instance
+		$pre = self::instance();
+	
+		// $data will be cleared after it is output
+		if  (func_num_args())
+			$pre->data[] = array('data' => $data, 'label' => $label);
+
+		// return instance for method chaining or __toString
+		return $pre;
+	
+	}
+
+	// shortcut -- Pre::add() -- same as Pre::data()
+	public static function add($data = NULL, $label = NULL) {
+		return (func_num_args()) ? self::data($data, $label) : self::instance();
+	}
+	
+	// shortcut to Pre::render()
+	public static function r($data = NULL, $label = NULL) {
+		return (func_num_args()) ? self::data($data, $label) : self::instance();
+	}
+
+	// render all Pre data to a string and return
+	public static function render($data = NULL, $label = NULL) {
+
+		// add data if passed
+		$pre = (func_num_args()) ? self::data($data, $label) : self::instance();
+		
+		// return rendered string
+		return (string) $pre;
+	}
+
+	// simple wrapper for var_dump that outputs within a styled <pre> tag and fixes whitespace and formatting
+	public function __toString() {
 		
 		// extract config to this context for convenience
-		extract(self::$config);
-		
-		// pre styling
-		$style = 'font-family: Menlo, monospace; color: #000; font-size: 11px !important; line-height: 17px !important; text-align: left;';
+		extract($this->config);
 		
 		// you can specify dimensions for a scrollble div
 		if ($height !== 'auto' OR $width !== 'auto') {
@@ -58,32 +77,31 @@ class Pre {
 			if (is_numeric($width) AND ! strstr($width, '%')) $width .= 'px';
 			
 			// all scrollables get a border
-			$style .= " border: 1px solid #ddd; padding: 10px; overflow: scroll; height: $height; width: $width;";
+			$this->style .= " border: 1px solid #ddd; padding: 10px; overflow: scroll; height: $height; width: $width;";
 			
 		}
 
 		// styled pre tag
-		$pre = '<pre style="'.$style.'">';
-		
+		$pre = '<pre style="'.$this->style.'">';
+
 		// iterate over data objects and var_dump 'em
-		foreach (self::$data as $data) {
+		foreach ($this->data as $data) {
 			
 			// pull out data and label
-			$label = $data['label'];
-			$data = $data['data'];
+			extract($data);
 			
-			// no label, use object class
-			// if (empty($label) AND gettype($data) == 'object')
-			// $label = get_class($data);
-
 			// capture var_dump
 			ob_start();
 			var_dump($data);
 			$data = ob_get_clean();
+
+			// special case for NULL values
+			if (trim($data) == 'NULL')
+				$data = '<span style="color: #777;">NULL</span>'."\n";
 			
 			// add label
 			if (! empty($label))
-				$data = '<span style="color: #222; font-weight: bold; background-color: #eee; font-size: 11px; padding: 3px 5px;">'.$label."</span> $data";
+				$data = '<span style="color: #222; font-weight: bold; background-color: #eee; font-size: 11px; padding: 3px 5px;">'.$label.":</span> $data";
 			
 			// compile list of class names by searching: object(PreObject)#4 (2) {
 			preg_match_all('/object\(([A-Za-z0-9_]+)\)\#[0-9]+\ \([0-9]+\)\ {/', $data, $objects);
@@ -95,7 +113,7 @@ class Pre {
 				$objects = array_unique($objects[1]);
 
 				// fix all class names to look like this: stdClass#3 object(4) {
-				$data = preg_replace('/object\(([A-Za-z0-9_]+)\)\#([0-9]+)\ \(([0-9]+)\)\ {/', '<span style="color: #222; font-weight: bold;">\\1</span><span style="color: #444;">#\\2</span> <span style="color: #777;">obj(\\3)</span> {', $data);
+				$data = preg_replace('/object\(([A-Za-z0-9_]+)\)\#([0-9]+)\ \(([0-9]+)\)\ {/', '<span style="color: #222; font-weight: bold;">\\1</span> <span style="color: #444;">#\\2</span> <span style="color: #777;">obj(\\3)</span> {', $data);
 
 				// remove class name from private members
 				foreach ($objects as $object)
@@ -107,10 +125,10 @@ class Pre {
 			$arrow = '<span style="font-weight: bold; color: #aaa;"> => </span>';
 			
 			// style special case  NULL
-			$data = preg_replace('/=>\s*NULL/', '=> <span style="color: #777; font-weight: bold;">NULL</span>', $data);
+			$data = preg_replace('/=>\s*NULL/i', '=> <span style="color: #777;">NULL</span>', $data);
 			
 			// array keys are bolder
-			$data = preg_replace('/\[\"([A-Za-z0-9_\ \@+\-\(\):]+)\"(:?[a-z]*)\]\s*=>\s*/', '<span style="color: #444; font-weight: bold;">["\\1"]</span>\\2'.$arrow, $data);
+			$data = preg_replace('/\[\"([a-z0-9_\ \@+\-\(\):]+)\"(:?[a-z]*)\]\s*=>\s*/i', '<span style="color: #444; font-weight: bold;">[\\1]</span>\\2'.$arrow, $data);
 
 			// numeric keys are bolder
 			$data = preg_replace('/\[([0-9]+)\]\s*=>\s*/', '<span style="color: #444; font-weight: bold;">[\\1]</span>'.$arrow, $data);
@@ -122,13 +140,13 @@ class Pre {
 			$data = preg_replace('/string\(([0-9]+)\)/', '<span style="color: #777;">str(\\1)</span>', $data);
 
 			// de-emphasize int labels
-			$data = preg_replace('/int\(([0-9-]+)\)/', '<span style="color: #777;">int(<span style="text-transform: uppercase; font-weight: normal; color: #222;">\\1</span>)</span>', $data);
+			$data = preg_replace('/int\(([0-9-]+)\)/', '<span style="color: #777;">int(<span style="color: #222;">\\1</span>)</span>', $data);
 			
 			// de-emphasize float labels
-			$data = preg_replace('/float\(([0-9\.-]+)\)/', '<span style="color: #777;">float(<span style="text-transform: uppercase; font-weight: normal; color: #222;">\\1</span>)</span>', $data);
+			$data = preg_replace('/float\(([0-9\.-]+)\)/', '<span style="color: #777;">float(<span style="color: #222;">\\1</span>)</span>', $data);
 
 			// de-emphasize bool label
-			$data = preg_replace('/bool\(([A-Za-z]+)\)/', '<span style="color: #666;">bool(<span style="text-transform: uppercase; font-weight: normal; color: #222;">\\1</span>)</span>', $data);
+			$data = preg_replace('/bool\(([A-Za-z]+)\)/', '<span style="color: #777;">bool(<span style="text-transform: uppercase; color: #222;">\\1</span>)</span>', $data);
 			// de-emphasize array labels
 			$data = preg_replace('/array\(([0-9]+)\)/', '<span style="color: #777;">arr(\\1)</span>', $data);
 
@@ -140,21 +158,45 @@ class Pre {
 				$indent = ($indent > 0) ? str_repeat("    ", $indent/2) : "";
             	return $indent.$matches[2];
         	}, $data);
+
+			// style opening brackets
+			$data = preg_replace('/^(.*)(<\/span>\ \{)$/m', '\\1<span style="color: #777;">\\2</span>', $data);
+
+			// style closing brackets
+			$data = preg_replace('/^(\s*)(\})$/m', '\\1<span style="color: #777;">\\2</span>', $data);
 			
-			// add some separators
+			// add to pre output
 			$pre .= "$data";
-		
+
 		}
 		
 		// close pre tag
 		$pre .= "</pre>\n\n";
 		
 		// reset data
-		self::$data = array();
-
+		$this->data = array();
+		
 		// return output
 		return $pre;
 		
 	}
+	
+	// uses singleton pattern to take advantage of __toString magic
+	public static function instance($config = NULL) {
+
+		// create a new instance
+		if (! isset(self::$instance))
+			self::$instance = new Pre;
+
+		// allow passing config through
+		if ($config !== NULL)
+			self::$instance->config = $config;
+
+		// return instance
+		return self::$instance;
+
+	}
+	
 }
+
  
