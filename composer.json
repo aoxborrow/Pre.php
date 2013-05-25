@@ -2,7 +2,9 @@
 	"name": "paste/pre",
 	"license": "MIT",
 	"description": "A handsome replacement for print_r & var_dump.",
+	"keywords": ["pre", "print_r", "var_dump", "debug", "dump", "pretty", "print"],
     "type": "library",
+    "homepage": "https://github.com/paste/Pre.php",
 	"authors": [
 		{
 			"name": "Aaron Oxborrow",
