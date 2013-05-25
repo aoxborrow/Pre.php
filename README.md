@@ -43,7 +43,7 @@ Either way, you have the option of adding a label to identify the data.
 echo Pre($data);
 
 // using shortcut method with label
-echo Pre::r($data, 'Debug Data');
+echo Pre::r($data, 'Debug Label');
 
 // using regular library method, no label
 echo Pre::render($data);
@@ -56,6 +56,12 @@ echo Pre::render($data);
 Pre::add($data1, 'Debug Data #1');
 Pre::add($data2, 'Debug Data #2');
 Pre::add($_SERVER); // add some server info
+
+// later... display the data, or log/email/etc...
 echo Pre::render();
 ```
+
+Comparison
+----------
+![Comparison](https://github.com/paste/Pre.php/raw/master/pre_comparison.png)  
 
