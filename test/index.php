@@ -18,6 +18,8 @@ class PreObject {
 	protected $protected = 'protected';
 	private $private = 'private';
 	public static $static = 'static';
+	public $assoc = array('key' => 'value');
+	public $array = array('value', 'value', 'value');
 	
 	public function __construct() {
 		$this->runtime = 'runtime';
@@ -28,17 +30,19 @@ class PreObject {
 	}
 }
 
+/*
 // Pretty JSON
 $json = file_get_contents('sample.json');
 $pretty_json = Pre::json($json);
 echo Pre::render($pretty_json, 'json:');
+*/
 
 // PreObject
 $po = new PreObject;
 $po->member = new StdClass;
 $po->member->property = 'property';
 $po->member->submember = new PreObject;
-echo Pre::render($po, 'PreObject Test:');
+echo Pre::render($po);
 
 // StdClass
 $sc = new StdClass;

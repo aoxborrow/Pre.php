@@ -125,77 +125,70 @@ class Pre {
 			$label = $data['label'];
 			$data = $data['data'];
 			
-			// store object class name
-			// TODO: compile list of class names by searching: object(PreObject)#4 (2) {
-			// TODO: fix all class names on list
-			// TODO: like this: stdClass #3 object(4) {
-			$class = (gettype($data) == 'object') ? get_class($data) : FALSE;
+			// no label, use object class
+			// if (empty($label) AND gettype($data) == 'object')
+			// $label = get_class($data);
 
 			// capture var_dump
 			ob_start();
 			var_dump($data);
 			$data = ob_get_clean();
 			
+			// add label
 			if (! empty($label))
 				$data = '<span style="color: #222; font-weight: bold; background-color: #eee; font-size: 11px; padding: 3px 5px;">'.$label."</span> $data";
 			
-			// :private messies up our regex
-			$data = str_replace(':private]', ']<span style="color: #444; font-style: italic;">:private</span>', $data);
+			// compile list of class names by searching: object(PreObject)#4 (2) {
+			preg_match_all('/object\(([A-Za-z0-9_]+)\)\#[0-9]+\ \([0-9]+\)\ {/', $data, $objects);
+			
+			// we have some objects w/ class names
+			if (! empty($objects)) {
+			
+				// just get the list of object names, without duplicates
+				$objects = array_unique($objects[1]);
 
-			// :protected messies up our regex
-			$data = str_replace(':protected]', ']<span style="color: #444; font-style: italic;">:protected</span>', $data);
-			
-			// we have an object class -- fix formatting
-			if ($class) {
+				// fix all class names to look like this: stdClass#3 object(4) {
+				$data = preg_replace('/object\(([A-Za-z0-9_]+)\)\#([0-9]+)\ \(([0-9]+)\)\ {/', '<span style="color: #222; font-weight: bold;">\\1</span><span style="color: #444;">#\\2</span> <span style="color: #777;">obj(\\3)</span> {', $data);
+
+				// remove class name from private members
+				foreach ($objects as $object)
+					$data = str_replace(':"'.$object.'"', '', $data);
 				
-				// remove it from private members
-				$data = str_replace(':"'.$class.'"', '', $data);
-				
-				// fix spacing on first line
-				$data = str_replace('object('.$class.')#', '<span style="color: #666; font-weight: bold;">(object) '.$class.'</span> #', $data);
-			
 			}
 
-			// fix spacing
-			$data = preg_replace('/=\>\s+/', ' => ', $data);
-
-			// de-emphasize or hide string(0) labels
-			if ($string_counts) {
-				$data = preg_replace('/string\(([0-9]+)\)/', '<span style="color: #777; font-style: italic;">str(\\1)</span>', $data);
-			} else {
-				$data = preg_replace('/string\(([0-9]+)\) /', '', $data);
-			}
-
-			// de-emphasize NULL a little
-			$data = preg_replace('/=\> NULL/', '<span style="color: #666; font-weight: bold;">=> NULL</span>', $data);
-
-			// de-emphasize int
-			$data = preg_replace('/int\(([0-9-]+)\)/', '<span style="color: #777; font-style: italic;">int(<b>\\1</b>)</span>', $data);
-
-			// de-emphasize float
-			$data = preg_replace('/float\(([0-9\.-]+)\)/', '<span style="color: #777; font-style: italic;">float(<b>\\1</b>)</span>', $data);
-
-			// de-emphasize bool
-			$data = preg_replace('/bool\(([A-Za-z]+)\)/', '<span style="color: #666; font-weight: bold; text-transform: uppercase;">\\1</span>', $data);
-
-			// de-emphasize array
-			$data = preg_replace('/array\(([0-9]+)\)/', '<span style="color: #777; font-style: italic;">array(\\1)</span>', $data);
-
+			// consistent styling of =>'s
+			$arrow = '<span style="font-weight: bold; color: #aaa;"> => </span>';
+			
+			// style special case  NULL
+			$data = preg_replace('/=>\s*NULL/', '=> <span style="color: #777; font-weight: bold;">NULL</span>', $data);
+			
 			// array keys are bolder
-			// TODO: match keys with => at end to avoid false positives
-			// $data = preg_replace('/\[\"([A-Za-z0-9_ +\-\(\)\":]+)\"\]/', '<span style="color: #444; font-weight: bold;">["\\1"]</span>', $data);
-			$data = preg_replace('/\[\"([A-Za-z0-9_\ \@+\-\(\)\":]+)\"\]/', '<span style="color: #444; font-weight: bold;">["\\1"]</span>', $data);
+			$data = preg_replace('/\[\"([A-Za-z0-9_\ \@+\-\(\):]+)\"(:?[a-z]*)\]\s*=>\s*/', '<span style="color: #444; font-weight: bold;">["\\1"]</span>\\2'.$arrow, $data);
 
 			// numeric keys are bolder
-			// TODO: match keys with => at end to avoid false positives
-			$data = preg_replace('/\[([0-9]+)\]/', '<span style="color: #444; font-weight: bold;">[\\1]</span>', $data);
-		
+			$data = preg_replace('/\[([0-9]+)\]\s*=>\s*/', '<span style="color: #444; font-weight: bold;">[\\1]</span>'.$arrow, $data);
+			
+			// style :private and :protected
+			$data = preg_replace('/(:(private|protected))/', '<span style="color: #444; font-style: italic;">\\1</span>', $data);
+
+			// de-emphasize string labels
+			$data = preg_replace('/string\(([0-9]+)\)/', '<span style="color: #777;">str(\\1)</span>', $data);
+
+			// de-emphasize int labels
+			$data = preg_replace('/int\(([0-9-]+)\)/', '<span style="color: #777;">int(<span style="text-transform: uppercase; font-weight: normal; color: #222;">\\1</span>)</span>', $data);
+
+			// de-emphasize float labels
+			$data = preg_replace('/float\(([0-9\.-]+)\)/', '<span style="color: #777;">float(<span style="text-transform: uppercase; font-weight: normal; color: #222;">\\1</span>)</span>', $data);
+
+			// de-emphasize bool label
+			$data = preg_replace('/bool\(([A-Za-z]+)\)/', '<span style="color: #666;">bool(<span style="text-transform: uppercase; font-weight: normal; color: #222;">\\1</span>)</span>', $data);
+
+			// de-emphasize array labels
+			$data = preg_replace('/array\(([0-9]+)\)/', '<span style="color: #777;">arr(\\1)</span>', $data);
+
 			// use tabs
 			// $data = str_replace('  ', "\t", $data);
-			$data = str_replace('  ', "    ", $data);
-			
-			// bold the first line
-			$data = preg_replace('/(.*)\n/', "\\1\n", $data, 1);
+			// data = str_replace('  ', "    ", $data);
 			
 			// add some separators
 			$pre .= "$data";
