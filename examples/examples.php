@@ -52,7 +52,7 @@ Pre::$config['height'] = 200;
 // add to data queue with a label
 Pre::add($array, 'My Debug Data');
 
-// later in the script..
+// later in the script...
 
 // add to data queue without a label and output
 echo Pre::render($object);

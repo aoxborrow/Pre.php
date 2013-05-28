@@ -3,16 +3,19 @@ A handsome replacement for print\_r & var\_dump. Output your debugging info in a
 
 ```php
 // basic usage
-echo Pre($data);
+echo Pre::r($data);
 ```
 
 ![Basic Example](https://github.com/paste/Pre.php/raw/master/examples/basic_example.png)  
 
 ```php
-// configuring dimensions and using a label
+// add data to queue storage
+Pre::add($data, 'My Debug Data');
+// configure dimensions
 Pre::$config['width'] = 400;
 Pre::$config['height'] = 80;
-echo Pre:render($data, 'My Debug Data');
+// render and clear queue
+echo Pre::render();
 ```
 
 ![Label Example](https://github.com/paste/Pre.php/raw/master/examples/label_example.png)  
@@ -32,7 +35,7 @@ Installation
 }
 ```
 
-Or just include Pre.php directly into your project. You might also want to setup the Pre() function shortcut:
+Or just include Pre.php directly into your project. You might also want to setup the Pre() function shortcut for convenience:
 
 ```php
 <?php
@@ -50,7 +53,7 @@ if (! function_exists('Pre')) {
 Basic Usage
 -----------
 
-You can use Pre in two basic ways; output debugging data directly to the browser or add the data to a queue and display it later in the script.
+You can use Pre in two basic ways; output debugging data directly to the browser or add the data to a queue and display it later in execution.
 Options:
  - add a label to identify the data
  - configure the height/width of the `<pre>` block
