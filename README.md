@@ -1,5 +1,5 @@
 ## Pre
-A handsome replacement for print\_r & var\_dump. Output your debugging info in a minimally styled `<pre>` block. 
+A handsome replacement for print\_r & var\_dump. Output debugging info in a minimally styled `<pre>` block. 
 
 ```php
 // basic usage
@@ -11,9 +11,11 @@ echo Pre::r($data);
 ```php
 // add data to queue storage
 Pre::add($data, 'My Debug Data');
+
 // configure dimensions
 Pre::$config['width'] = 400;
 Pre::$config['height'] = 80;
+
 // render and clear queue
 echo Pre::render();
 ```
@@ -54,7 +56,8 @@ Basic Usage
 -----------
 
 You can use Pre in two basic ways; output debugging data directly to the browser or add the data to a queue and display it later in execution.
-Options:
+
+Optional:
  - add a label to identify the data
  - configure the height/width of the `<pre>` block
 
@@ -64,10 +67,10 @@ Options:
 // using function shorcut
 echo Pre($data);
 
-// using shortcut method with label
+// using shortcut r() method with label
 echo Pre::r($data, 'Debug Label');
 
-// using regular library method, no label
+// using regular render() method, no label
 echo Pre::render($data);
 ```
 
@@ -76,14 +79,15 @@ echo Pre::render($data);
 <?php
 // add data to queue with a label
 Pre::add($data1, 'Debug Data #1');
-(...do some stuff...)
+
+// ...do some stuff...
 Pre::add($data2, 'Debug Data #2');
-(...do some stuff...)
-// later... display the data, or log/email/etc...
+
+// later... display the data
 echo Pre::render();
 ```
 
-Comparison
+vs. print\_r() and var\_dump()
 ----------
 ![Comparison](https://github.com/paste/Pre.php/raw/master/examples/pre_comparison.png)  
 
