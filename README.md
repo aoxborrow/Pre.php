@@ -1,7 +1,22 @@
 ## Pre
-A handsome replacement for print\_r & var\_dump.
+A handsome replacement for print\_r & var\_dump. Output your debugging info in a minimally styled `<pre>` block. 
 
-![Label Example](https://github.com/paste/Pre.php/raw/master/label_example.png)  
+```php
+// basic usage
+echo Pre($data);
+```
+
+![Basic Example](https://github.com/paste/Pre.php/raw/master/examples/basic_example.png)  
+
+```php
+// configuring dimensions and using a label
+Pre::$config['width'] = 400;
+Pre::$config['height'] = 80;
+echo Pre:render($data, 'My Debug Data');
+```
+
+![Label Example](https://github.com/paste/Pre.php/raw/master/examples/label_example.png)  
+
 
 
 Installation
@@ -12,7 +27,7 @@ Installation
 ```json
 {
     "require": {
-        "paste/pre": ">=1.0"
+        "paste/pre": "dev-master"
     }
 }
 ```
@@ -23,12 +38,11 @@ Or just include Pre.php directly into your project. You might also want to setup
 <?php
 // include Pre lib
 require '/path/to/src/Paste/Pre.php';
-use Paste\Pre;
 
 // setup Pre() function shortcut
 if (! function_exists('Pre')) {
 	function Pre($data, $label = NULL) {
-		return Pre::render($data, $label);
+		return Paste\Pre::render($data, $label);
 	}
 }
 ```
@@ -36,8 +50,10 @@ if (! function_exists('Pre')) {
 Basic Usage
 -----------
 
-You can use Pre in two basic ways. You can output debugging data directly to the browser, or you can add the data to a queue and display it later.
-Either way, you have the option of adding a label to identify the data.
+You can use Pre in two basic ways; output debugging data directly to the browser or add the data to a queue and display it later in the script.
+Options:
+ - add a label to identify the data
+ - configure the height/width of the `<pre>` block
 
 #### Direct Output
 ```php
@@ -57,14 +73,14 @@ echo Pre::render($data);
 <?php
 // add data to queue with a label
 Pre::add($data1, 'Debug Data #1');
+(...do some stuff...)
 Pre::add($data2, 'Debug Data #2');
-Pre::add($_SERVER); // add some server info
-
+(...do some stuff...)
 // later... display the data, or log/email/etc...
 echo Pre::render();
 ```
 
 Comparison
 ----------
-![Comparison](https://github.com/paste/Pre.php/raw/master/pre_comparison.png)  
+![Comparison](https://github.com/paste/Pre.php/raw/master/examples/pre_comparison.png)  
 

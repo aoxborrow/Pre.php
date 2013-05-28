@@ -3,8 +3,8 @@
 	"license": "MIT",
 	"description": "A handsome replacement for print_r & var_dump. Debugging output with understated style.",
 	"keywords": ["pre", "print_r", "var_dump", "debug", "dump", "pretty", "print"],
-    "type": "library",
-    "homepage": "https://github.com/paste/Pre.php",
+	"type": "library",
+	"homepage": "https://github.com/paste/Pre.php",
 	"authors": [
 		{
 			"name": "Aaron Oxborrow",
