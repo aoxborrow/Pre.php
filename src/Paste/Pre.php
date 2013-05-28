@@ -20,7 +20,7 @@ class Pre {
 	public $style = 'font-family: Menlo, monospace; color: #000; font-size: 11px !important; line-height: 17px !important; text-align: left;';
 	
 	// default config for output
-	public $config = array(
+	public static $config = array(
 		'width' => 'auto',
 		'height' => 'auto',
 	);
@@ -67,7 +67,7 @@ class Pre {
 	public function __toString() {
 		
 		// extract config to this context for convenience
-		extract($this->config);
+		extract(self::$config);
 		
 		// you can specify dimensions for a scrollble div
 		if ($height !== 'auto' OR $width !== 'auto') {
@@ -77,7 +77,7 @@ class Pre {
 			if (is_numeric($width) AND ! strstr($width, '%')) $width .= 'px';
 			
 			// all scrollables get a border
-			$this->style .= " border: 1px solid #ddd; padding: 10px; overflow: scroll; height: $height; width: $width;";
+			$this->style .= " border: 1px solid #ddd; padding: 10px; overflow-y: scroll; height: $height; width: $width;";
 			
 		}
 
@@ -113,7 +113,7 @@ class Pre {
 				$objects = array_unique($objects[1]);
 
 				// fix all class names to look like this: stdClass#3 object(4) {
-				$data = preg_replace('/object\(([A-Za-z0-9_]+)\)\#([0-9]+)\ \(([0-9]+)\)\ {/', '<span style="color: #222; font-weight: bold;">\\1</span> <span style="color: #444;">#\\2</span> <span style="color: #777;">obj(\\3)</span> {', $data);
+				$data = preg_replace('/object\(([A-Za-z0-9_]+)\)\#([0-9]+)\ \(([0-9]+)\)\ {/', '<span style="color: #222; font-weight: bold;">\\1</span> <span style="color: #444;">#\\2</span> <span style="color: #777;">object(\\3)</span> {', $data);
 
 				// remove class name from private members
 				foreach ($objects as $object)
@@ -137,7 +137,7 @@ class Pre {
 			$data = preg_replace('/(:(private|protected))/', '<span style="color: #444; font-style: italic;">\\1</span>', $data);
 
 			// de-emphasize string labels
-			$data = preg_replace('/string\(([0-9]+)\)/', '<span style="color: #777;">str(\\1)</span>', $data);
+			$data = preg_replace('/string\(([0-9]+)\)/', '<span style="color: #777;">string(\\1)</span>', $data);
 
 			// de-emphasize int labels
 			$data = preg_replace('/int\(([0-9-]+)\)/', '<span style="color: #777;">int(<span style="color: #222;">\\1</span>)</span>', $data);
@@ -148,7 +148,7 @@ class Pre {
 			// de-emphasize bool label
 			$data = preg_replace('/bool\(([A-Za-z]+)\)/', '<span style="color: #777;">bool(<span style="text-transform: uppercase; color: #222;">\\1</span>)</span>', $data);
 			// de-emphasize array labels
-			$data = preg_replace('/array\(([0-9]+)\)/', '<span style="color: #777;">arr(\\1)</span>', $data);
+			$data = preg_replace('/array\(([0-9]+)\)/', '<span style="color: #777;">array(\\1)</span>', $data);
 
 			// boost spacing
 			$data = preg_replace_callback('/^(\s*)(\S.*)$/m', function($matches) {
@@ -182,15 +182,11 @@ class Pre {
 	}
 	
 	// uses singleton pattern to take advantage of __toString magic
-	public static function instance($config = NULL) {
+	public static function instance() {
 
 		// create a new instance
 		if (! isset(self::$instance))
 			self::$instance = new Pre;
-
-		// allow passing config through
-		if ($config !== NULL)
-			self::$instance->config = $config;
 
 		// return instance
 		return self::$instance;
