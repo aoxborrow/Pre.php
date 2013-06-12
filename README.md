@@ -9,7 +9,7 @@ echo Pre::r($data);
 ![Basic Example](https://github.com/paste/Pre.php/raw/master/examples/basic_example.png)  
 
 ```php
-// add data to queue storage
+// add data to storage queue with label
 Pre::add($data, 'My Debug Data');
 
 // configure dimensions
